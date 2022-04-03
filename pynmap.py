@@ -107,7 +107,7 @@ class PyNmap():
             default='-v',
             help='Envie para o nmap expressamente os argumentos')
         self.my_parser.add_argument('-arguments_conf', metavar='arguments_conf', action='store', 
-            default='NMAP_DEFAULT_SILENT', 
+            default='NMAP_DEFAULT_QUICK_SCAN', 
             help='Envie para o nmap a configuração do argumento (verifique o file virtual enviroment)')
         self.my_parser.add_argument('-t', '-timeout', '--timeout', metavar='timeout', action='store', 
             default=60, type=int, 
