@@ -143,5 +143,6 @@ optional arguments:
                         Versão do pynmap.py
 ```                        
 
-## Disclaimer
+## Disclaimer:
+
 > O desenvolvedor se isenta de qualquer responsabilidade legal referente a má utilização do script (ou parte dele), significando assim que, a execução é de total resposnsabilidade de seu utilizador.
