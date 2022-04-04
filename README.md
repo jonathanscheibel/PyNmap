@@ -10,6 +10,7 @@ Script em python que recebe um (ou uma lista) de hosts por parâmetro, e realiza
 * Padrão de portas do nmap
 * Diferentes tipos de outputs
 * Configuração de parametrização do nmap
+* Busca automática de CVEs
 * Etc
 
 ## Utilização:
@@ -164,6 +165,12 @@ optional arguments:
   -v, -version, --version, -V
                         Versão do pynmap.py
 ```                        
+
+
+## Apresentação de alguns comandos:
+
+![commandos](commands.gif)
+
 
 ## Disclaimer:
 
