@@ -110,8 +110,6 @@ class PyNmap():
                 '''
             )
 
-        self.cve = False
-
         self.my_parser.version = VERSION
         self.my_parser.add_argument('-hosts', metavar='hosts', required=True, action='store', nargs='+', 
             help='Envie um ou mais destinos')
