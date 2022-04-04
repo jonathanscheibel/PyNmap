@@ -142,7 +142,7 @@ Porta: 80	Status: open	Nome: http	Produto: Apache httpd
 $ python pynmap.py -h
 
 usage: pynmap.py [-h] -hosts hosts [hosts ...] [-ports ports] [-arguments arguments] [-arguments_conf arguments_conf] [-t timeout]
-                 [-v]
+                 [-output output] [--cve] [-v]
 
 Script em python que recebe um (ou uma lista) de hosts por parâmetro, e realiza um port scan através de integração do python e nmap.
 O código é resiliente a travamentos do nmap, pois caso ele não retorne a resposta em até 1 minuto (ou tempo parametrizado), a ação é
@@ -158,6 +158,9 @@ optional arguments:
                         Envie para o nmap a configuração do argumento (verifique o file virtual enviroment)
   -t timeout, -timeout timeout, --timeout timeout
                         Timeout em segundos. (Padrao: 60 segundos)
+  -output output, --output output, -o output
+                        Defina o padrão de saída
+  --cve, -cve           Busca automatizada de CVE
   -v, -version, --version, -V
                         Versão do pynmap.py
 ```                        
