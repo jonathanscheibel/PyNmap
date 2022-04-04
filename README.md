@@ -71,6 +71,7 @@ $ python pynmap.py -hosts 127.0.0.1 -p 22
 $ python pynmap.py -hosts 127.0.0.1 -p 1-8080
 ```
 
+
 > Exemplos para argumentos explícitos e/ou configurados:
 
 ```
@@ -78,6 +79,7 @@ $python pynmap.py -hosts 127.0.0.1 -arguments='-sV'
 
 $ python pynmap.py -hosts 127.0.0.1 -arguments_conf NMAP_DEFAULT_ATTACK
 ```
+
 
 > Exemplo para diferentes padrões (Padrão: console):
 
@@ -116,6 +118,23 @@ $ python pynmap.py -hosts 127.0.0.1 -o json
 
 {"nmap": {"command_line": "nmap -oX - -p 1-1024 -v -sV -Pn 127.0.0.1", "scaninfo": {"error": ["Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times may be slower.\n"], "tcp": {"method": "connect", "services": "1-1024"}}, "scanstats": {"timestr": "Sat Apr  2 20:54:52 2022", "elapsed": "6.93", "uphosts": "1", "downhosts": "0", "totalhosts": "1"}}, "scan": {"127.0.0.1": {"hostnames": [{"name": "localhost", "type": "PTR"}], "addresses": {"ipv4": "127.0.0.1"}, "vendor": {}, "status": {"state": "up", "reason": "user-set"}, "tcp": {"22": {"state": "open", "reason": "syn-ack", "name": "ssh", "product": "OpenSSH", "version": "8.4p1 Debian 5", "extrainfo": "protocol 2.0", "conf": "10", "cpe": "cpe:/o:linux:linux_kernel"}, "80": {"state": "open", "reason": "syn-ack", "name": "http", "product": "Apache httpd", "version": "2.4.53", "extrainfo": "(Debian)", "conf": "10", "cpe": "cpe:/a:apache:http_server:2.4.53"}}}}}
 ```
+
+
+> Exemplo para busca automática de CVE
+
+```
+$ python pynmap.py -hosts localhost --cve
+
+================================================================================
+Host: 127.0.0.1 (localhost)	Status: up 
+Porta: 22	Status: open	Nome: ssh	Produto: OpenSSH
+	> CVE-2021-41617    	7.0	privilege escalation when AuthorizedKeys or AuthorizedPrinc are configured
+Porta: 80	Status: open	Nome: http	Produto: Apache httpd
+	> CVE-2022-24921    	7.5	regexp: stack exhaustion via a deeply nested expression
+	> CVE-2021-44521    	9.1	RCE for scripted UDFs
+	> CVE-2021-25939    	2.7	Blind SSRF via Foxx service download
+```
+
 
 ## Ajuda:
 
