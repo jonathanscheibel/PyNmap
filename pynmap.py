@@ -5,6 +5,7 @@ import os
 import json
 import logging
 import subprocess
+import requests
 
 from nmap import PortScanner, PortScannerError
 from decouple import config
@@ -26,26 +27,37 @@ class ExceptionDefault(Exception):
     
     def __str__(self):
         return self.msg
-
-
+    
 
 def report_console(report):
         """Exporta o relatório para o modo simplório, para o console"""
-        def wrapper(ref, nm):            
+        def wrapper(ref, nm):                        
             if nm is None:                
                 raise ExceptionDefault(OBJECT_NONE)
-            result = ''
+            result = ''             
             for host in nm.all_hosts():                                
                 result += '='*80 + '\n'
                 result += 'Host: %s (%s)\tStatus: %s \n' % (host, nm[host].hostname(), nm[host].state())             
                 for proto in nm[host].all_protocols():
-                    lport = nm[host][proto].keys()
+                    lport = nm[host][proto].keys()                    
                     for port in lport:                                               
+                        product = nm[host][proto][port]['product']                        
                         result += 'Porta: %s\tStatus: %s\tNome: %s\tProduto: %s\n' % (
                             port, nm[host][proto][port]['state'], 
                             nm[host][proto][port]['name'],
-                            nm[host][proto][port]['product']
-                        )                
+                            product
+                        )                        
+                        if ref.args.cve:
+                            DATE_LAST_API = '2021-03-04'
+                            URL_API = 'https://access.redhat.com/labs/securitydataapi/cve.json?package=%s&after=%s'                                     
+                            i_product = product.split(' ')
+                            for partial_name in i_product:
+                                response = json.loads(requests.get((URL_API % (partial_name, DATE_LAST_API))).content)                                  
+                                for item in response:
+                                    description = item['bugzilla_description'] 
+                                    description = description[max([description.find(idx) for idx in ': ']) + 1:].strip()
+                                    cvs_score = lambda: item['cvss3_score'] if ('cvss3_score' in item) else ""
+                                    result += '\t> %s    \t%s\t%s\n' % (item['CVE'], cvs_score(), description)                            
             return result            
         return wrapper
 
@@ -98,28 +110,32 @@ class PyNmap():
                 '''
             )
 
+        self.cve = False
+
         self.my_parser.version = VERSION
         self.my_parser.add_argument('-hosts', metavar='hosts', required=True, action='store', nargs='+', 
             help='Envie um ou mais destinos')
         self.my_parser.add_argument('-ports', metavar='ports', action='store', default='1-1024', 
             help='Defina as portas alvo (em sintaxe nmap)')
         self.my_parser.add_argument('-arguments', metavar='arguments', action='store', 
-            default='-v',
+            default='-sV',
             help='Envie para o nmap expressamente os argumentos')
-        self.my_parser.add_argument('-arguments_conf', metavar='arguments_conf', action='store', 
-            default='NMAP_DEFAULT_QUICK_SCAN', 
+        self.my_parser.add_argument('-arguments_conf', metavar='arguments_conf', action='store',                         
             help='Envie para o nmap a configuração do argumento (verifique o file virtual enviroment)')
         self.my_parser.add_argument('-t', '-timeout', '--timeout', metavar='timeout', action='store', 
             default=60, type=int, 
             help='Timeout em segundos. (Padrao: 60 segundos)')
         self.my_parser.add_argument('-output', '--output', '-o', metavar='output', action='store', default='console', 
-            help='Defina o padrão de saída')    
+            help='Defina o padrão de saída')  
+        self.my_parser.add_argument('--cve', '-cve', default=False, action='store_true', 
+            help='Busca automatizada de CVE')
         self.my_parser.add_argument('-v', '-version', '--version', '-V', action='version', 
             version=f'%(prog)s {VERSION}', 
             help=f'Versão do {NAME_SCRIPT}')
-
+        
         self.args = self.my_parser.parse_args()
-        self.args.arguments_conf = config(self.args.arguments_conf)
+        if self.args.arguments_conf is not None:
+            self.args.arguments_conf = config(self.args.arguments_conf)
 
         self.nm = None
         self.dict_report = {}
@@ -138,10 +154,11 @@ class PyNmap():
             )
 
     def scan(self):   
-        '''Função que utiliza a lib para realizar o trabalho de scaneamento'''               
+        '''Função que utiliza a lib para realizar o trabalho de scaneamento'''                       
         # TODO Criar opção de targets via arquivo
-        self.dict_report = self.nm.scan(hosts=' '.join(self.args.hosts), # ports=self.args.ports, 
-            arguments=self.args.arguments + ' ' + self.args.arguments_conf, 
+        empty_arg = lambda s: s or ""    
+        self.dict_report = self.nm.scan(hosts=' '.join(self.args.hosts), ports=self.args.ports, 
+            arguments=self.args.arguments + ' ' + empty_arg(self.args.arguments_conf), 
             timeout=self.args.timeout)                    
         self.log.debug('Comando nmap: ' + self.nm.command_line())
         
@@ -170,16 +187,16 @@ class PyNmap():
             self.scan()      
 
             outputs = {
-                'console': report_console(self.nm),
+                'console': report_console(self.nm),                
                 'xml': report_xml(self.nm),
                 'csv': report_csv(self.nm),
                 'json': report_json(self.nm)
             }                
             try:
-                report_output = outputs.get(self.args.output)(self, self.nm)                        
+                report_output = outputs.get(self.args.output)(self, self.nm) 
                 print(report_output) # Envia para saída no padrão escolhido pelo usuário
             except Exception as err:
-                raise ExceptionDefault('O padrão de output informado é inválido!')
+                raise ExceptionDefault(f'Erro ao processar o output. Mensagem: {err}')
             
         except PortScannerError as e: 
             raise ExceptionDefault('Status: {0} - ({1})'.format(e, 'Erro original'))         
